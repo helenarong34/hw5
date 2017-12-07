@@ -1,24 +1,20 @@
 
-# coding: utf-8
-
 # Using SQLAlchemy to Talk to a Database
 # =====================
 # SqlAlchemy helps you use a database to store and retrieve information from python.  It abstracts the specific storage engine from te way you use it - so it doesn't care if you end up using MySQL, SQLite, or whatever else. In addition, you can use core and the object-relational mapper (ORM) to avoid writing any SQL at all.  The [SQLAlchemy homepage](http://www.sqlalchemy.org/) has lots of good examples and full documentation.
 
-# In[6]:
 
 from sqlalchemy import *
 import datetime
 import mediacloud, datetime
 
 
-# ## Basic SQL Generation
+
 # The core library generates SQL for you.  Read more about it on their [expression language tutorial page](http://docs.sqlalchemy.org/en/rel_1_0/core/index.html). Below are some basic examples.
 
 # ### Creating a Table
 # Read more about [defining and creating tables](http://docs.sqlalchemy.org/en/rel_1_0/core/tutorial.html#define-and-create-tables).
 
-# In[ ]:
 
 # add `echo=True` to see log statements of all the SQL that is generated
 engine = create_engine('sqlite:///:memory:',echo=True) # just save the db in memory for now (ie. not on disk)
@@ -34,16 +30,11 @@ metadata.create_all(engine) # and create the tables in the database
 
 
 
-# ### Inserting Data
-# Read more about generating [SQL insert statements](http://docs.sqlalchemy.org/en/rel_1_0/core/tutorial.html#insert-expressions).
-
-# In[ ]:
-
 insert_stmt = queries.insert()
 str(insert_stmt) # see an example of what this will do
 
 
-# In[7]:
+
 
 mc = mediacloud.api.MediaCloud('4923e5782ddbc72d23d4a57cfcf2176efbaef3b18677b4ae7eb7581e8356e924')
 res1 = mc.sentenceCount('( Trump)', solr_filter=[mc.publish_date_query( datetime.date( 2016, 9, 1), datetime.date( 2016, 9, 30) ), 'tags_id_media:1' ])
@@ -52,8 +43,6 @@ print (res1['count'])
 print (res2['count'])
 
 
-# In[ ]:
-
 insert_stmt = queries.insert().values(keywords="Trump", count = res1['count'])
 
 
@@ -61,14 +50,9 @@ insert_stmt = queries.insert().values(keywords="Trump", count = res1['count'])
 str(insert_stmt)
 
 
-# In[ ]:
-
 db_conn = engine.connect()
 result = db_conn.execute(insert_stmt)
 result.inserted_primary_key # print out the primary key it was assigned
-
-
-# In[ ]:
 
 insert_stmt = queries.insert().values(keywords="Hilary",count=res2['count'])
 result = db_conn.execute(insert_stmt)
@@ -78,8 +62,6 @@ result.inserted_primary_key # print out the primary key it was assigned
 # ### Retrieving Data
 # Read more about using [SQL select statments](http://docs.sqlalchemy.org/en/rel_1_0/core/tutorial.html#selecting).
 
-# In[ ]:
-
 from sqlalchemy.sql import select
 select_stmt = select([queries])
 results = db_conn.execute(select_stmt)
@@ -87,14 +69,13 @@ for row in results:
     print(row)
 
 
-# In[ ]:
+
 
 select_stmt = select([queries]).where(queries.c.id==1)
 for row in db_conn.execute(select_stmt):
     print(row)
 
 
-# In[ ]:
 
 select_stmt = select([queries]).where(queries.c.keywords.like('p%'))
 for row in db_conn.execute(select_stmt):
@@ -104,7 +85,6 @@ for row in db_conn.execute(select_stmt):
 # ## ORM
 # You can use their ORM library to handle the translation into full-fledged python objects.  This can help you build the Model for you [MVC](https://en.wikipedia.org/wiki/Model–view–controller) solution.
 
-# In[1]:
 
 import datetime
 from sqlalchemy import *
@@ -116,7 +96,6 @@ Base = declarative_base()
 # ### Creating a class mapping
 # Read more about [creating a mapping](http://docs.sqlalchemy.org/en/rel_1_0/orm/tutorial.html#declare-a-mapping).
 
-# In[2]:
 
 class Query(Base):
     __tablename__ = 'queries'
@@ -131,7 +110,7 @@ Query.__table__
 # ### Creating a connection and session
 # Read more about [creating this stuff](http://docs.sqlalchemy.org/en/rel_1_0/orm/tutorial.html#creating-a-session).
 
-# In[3]:
+
 
 engine = create_engine('sqlite:///:memory:') # just save the db in memory for now (ie. not on disk)
 Base.metadata.create_all(engine)
@@ -142,13 +121,10 @@ my_session = Session()
 # ### Inserting Data
 # Read more about [inserting data with an ORM](http://docs.sqlalchemy.org/en/rel_1_0/orm/tutorial.html#adding-new-objects).
 
-# In[9]:
 
 query = Query(keywords="Trump",count=res1['count'])
 query
 
-
-# In[10]:
 
 my_session.add(query)
 my_session.commit()
@@ -158,13 +134,11 @@ query.id
 # ### Retrieving Data
 # Read more about [retrieving data from the db](http://docs.sqlalchemy.org/en/rel_1_0/orm/tutorial.html#querying) via an ORM class.
 
-# In[12]:
 
 for q in my_session.query(Query):
     print (q)
 
 
-# In[13]:
 
 query1 = Query(keywords="robot")
 query2 = Query(keywords="puppy")
@@ -172,24 +146,15 @@ my_session.add_all([query1,query2])
 my_session.commit()
 
 
-# In[15]:
 
 for q in my_session.query(Query):
     print (q)
 
 
-# In[16]:
-
 for q in my_session.query(Query).filter(Query.keywords.like('r%')):
     print (q)
 
 
-# In[ ]:
-
-
-
-
-# In[ ]:
 
 
 
